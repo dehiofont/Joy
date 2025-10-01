@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public class Armament
-{
+{//erase me
     private string name;
     private float range;
     public Armament(string _name, float _range)
