@@ -18,8 +18,7 @@ public class CombatUIMenu
     public CombatUIMenu
         (List<Canvas> _canvas,
         List<TextMeshProUGUI> _textList, 
-        Image _selector,
-        CombatSphereController combatMenuController)
+        Image _selector)
     {
         canvases = _canvas;
         textList = _textList;
@@ -27,10 +26,10 @@ public class CombatUIMenu
 
 
 
-        CombatSphereController.OnArmamentSelectionChangeEventArgs += CMC_OnArmamentSelectionChange;
+        //CombatSphereController.OnArmamentSelectionChangeEventArgs += CMC_OnArmamentSelectionChange;
     }
 
-    private void CMC_OnArmamentSelectionChange()
+    //private void CMC_OnArmamentSelectionChange()
 
     private void GenerateTexList<T>(List<T> _textList)
     {
@@ -77,6 +76,7 @@ public class CombatUIMenu
             textList[i].SetText(stringList[i]);
         }
     }
+
     public void TurnOnOrOffCanvases(int _state)
     {
         foreach (Canvas canvas in canvases)

@@ -95,7 +95,7 @@ namespace FomeCharacters
 
             currentArmaments = GameManager.Instance.playerArmaments;
 
-            TargetDetector = new TargetDetector(this);
+            TargetDetector = new TargetDetector();
         }
 
         class OnArmamentUIStartEventArgs : EventArgs 
@@ -197,7 +197,8 @@ namespace FomeCharacters
             switch (currentCombatPhase)
             {
                 case CombatSpherePhases.armamentUIStart:
-                    OnArmamentSelectionChange?.Invoke(currentArmament, currentArmaments);
+                    //OnArmamentSelectionChange?.Invoke(currentArmament, currentArmaments);
+                    Event.OnArmamentSelectionChange(currentArmament, currentArmaments);
                     break;
                 case CombatSpherePhases.targetUIStart:
                     OnTargetSelectionChange?.Invoke(currentTarget, currentTargets);

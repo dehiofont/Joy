@@ -22,9 +22,9 @@ namespace FomeCharacters
 
         CombatSphereController combatSphereController;
 
-        public TargetDetector(CombatSphereController _combatSphereController) 
+        public TargetDetector() 
         {
-            combatSphereController = _combatSphereController;
+            //combatSphereController = _combatSphereController;
             combatSphereController.OnArmamentSelectionChange += ArmamentSetup;
         }
 
