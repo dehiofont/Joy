@@ -10,6 +10,9 @@ public class CombatUIMenu
     private List<TextMeshProUGUI> textList;
     private Image selector;
 
+    private Vector3 selectorPos;
+    private float selectedTextYPos;
+
     private List<string> stringList = new List<string>();
     private int currentSelection = 0;
 
@@ -23,43 +26,26 @@ public class CombatUIMenu
         canvases = _canvas;
         textList = _textList;
         selector = _selector;
-
-
-
-        //CombatSphereController.OnArmamentSelectionChangeEventArgs += CMC_OnArmamentSelectionChange;
     }
 
     //private void CMC_OnArmamentSelectionChange()
 
-    private void GenerateTexList<T>(List<T> _textList)
+    public void GenerateTextList(List<UnitController> _targets)
     {
         stringList.Clear();
-
-        Armament currentArmament;
-        UnitController unitController;
-
-        for(int i = 0; i < _textList.Count; i++)
+        for (int i = 0; i < _targets.Count; i++)
         {
-            if (_textList[i] is Armament)
-            {
-                currentArmament = _textList[i] as Armament;
-                stringList.Add(currentArmament.GetName());                
-            }
-            else if(_textList[i] is UnitController)
-            {
-                unitController = _textList[i] as UnitController;
-                stringList.Add(unitController.GetName());                
-            }
+            stringList.Add(_targets[i].GetName());
         }
         PopulateTextList();
     }
 
-    public void GenerateTextList(List<Armament> _armament)
+    public void GenerateTextList(List<Armament> _armaments)
     {
         stringList.Clear();
-        for (int i = 0; i < _armament.Count; i++)
+        for (int i = 0; i < _armaments.Count; i++)
         {
-            stringList.Add(_armament[i].GetName());
+            stringList.Add(_armaments[i].GetName());
         }
         PopulateTextList();
     }
@@ -91,7 +77,6 @@ public class CombatUIMenu
             }
         }
     }
-
     public void TurnOnOrOffTexts(int _state)
     {
         foreach (TextMeshProUGUI _text in textList)
@@ -106,7 +91,6 @@ public class CombatUIMenu
             }
         }
     }
-
     public void TurnOnOrOffSelector(int _state)
     {
         if (_state < 1)
@@ -118,7 +102,6 @@ public class CombatUIMenu
             selector.enabled = true;
         }
     }
-
     public void TurnOnOffMenu(int _state)
     {
         if(_state < 1)
@@ -133,5 +116,11 @@ public class CombatUIMenu
             TurnOnOrOffTexts(1);
             TurnOnOrOffSelector(1);
         }
+    }
+    public void SetSelectorPosition(int _selectedText)
+    {
+        selectorPos = selector.transform.localPosition;
+        selectedTextYPos = textList[_selectedText].transform.localPosition.y;
+        selector.transform.localPosition = new Vector3(selectorPos.x, selectedTextYPos, selectorPos.z);
     }
 }

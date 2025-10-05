@@ -1,50 +1,12 @@
-using JetBrains.Annotations;
-using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace FomeCharacters
 {
     public class CombatSphereController : MonoBehaviour
     {
-        [SerializeField] GameObject combatSphere;
-        [SerializeField] float combatSphereMaxSize;
-        [SerializeField] float combatSphereMinSize;
-        [SerializeField] float combatSphereSpeedScaler = 1;
-        [SerializeField] int resizeDirection = 1;
-        [SerializeField] float combatSphereSingleVector;
-
-
-        public event EventHandler OnCombatSphereStart;
-        public event EventHandler OnCombatSphereEnd;
-
-        public event EventHandler OnArmamentUIStart;
-        public event EventHandler OnTargetUIStart;
-        public event EventHandler OnPartsUIStart;
-
-        //public class OnArmamentSelectionChangeEventArgs : EventArgs
-        //{
-        //    public Armament Armament;
-        //    public List<Armament> armamentList;
-        //}
-
-        public event Action<Armament, List<Armament>> OnArmamentSelectionChange;
-        //public class OnTargetSelectionChangeEventArgs : EventArgs
-        //{
-        //   public UnitController Target;
-        //   public List<UnitController> targetList;
-        //}
-
-        public event Action<UnitController, List<UnitController>> OnTargetSelectionChange;
-        //public event EventHandler<OnTargetSelectionChangeEventArgs> OnTargetSelectionChange;
-        
-        //Copy stuff above
-        public event EventHandler OnPartSelectionChange;
-        
-        public event EventHandler OnArmamentSelected;
-        public event EventHandler OnTargetSelectied;
-        public event EventHandler OnPartSelected;
         private enum CombatSpherePhases
         {
             waitingToStart,
@@ -54,80 +16,99 @@ namespace FomeCharacters
             projectileFire,
             endingCombatSelection
         }
+        private CombatSpherePhases currentCombatPhase;
 
         private bool menuSelectionMode = false;
 
-        private CombatSpherePhases currentCombatPhase;
-
         public bool combatSphereOn = false;
-        private bool canResizeCombatSphere = false;
-        private Collider combatSphereCollider;
 
-        public bool phase1VisualFinished;
-        public bool phase2TargetsFound;
-        public bool phase3UIGenerated;
+        //ARMAMENTS
+        private ArmamentUIManager ArmamentUIManager;
+        [SerializeField] List<Armament> listOfArmaments = new List<Armament>();
+        [SerializeField] List<Canvas> armamentCanvases = new List<Canvas>();
+        [SerializeField] List<TextMeshProUGUI> armamentTexts = new List<TextMeshProUGUI>();
+        [SerializeField] Image armamentSelector;
+        [SerializeField] Canvas noTargetsUI;
+        private List<UnitController> listOfAllPotentialTargets;
 
+        //TARGETS
+        private TargetUIManager TargetUIManager;
+        [SerializeField] List<Canvas> targetCanvases = new List<Canvas>();
+        [SerializeField] List<TextMeshProUGUI> targetTexts = new List<TextMeshProUGUI>();
+        [SerializeField] Image targetSelector;
 
+        //HIGHLIGHTER
+        TargetHighlighter TargetHighlighter;
 
-        public List<Armament> currentArmaments = new List<Armament>();
-        public List<UnitController> currentTargets = new List<UnitController>();
-        //Add parts here
+        //BUBBLE
+        [SerializeField] GameObject combatSphere;
+        [SerializeField] float sphereSpeedScaler = 20;
 
-        private Armament currentArmament;
+        private List<UnitController> targetsInCombatSphere = new List<UnitController>();
+
         private UnitController currentTarget;
-        public int currentListNumSelection = 0;
+        private int selectedItemInUIList = 0;
         private int currentListCount = 0;
-
-        CombatUIMenu armamentMenu;
-        CombatUIMenu targetMenu;
-        CombatUIMenu partsMenu;
-
-        public TargetDetector TargetDetector;
-        public CombatUIMenu ArmamentUI;
-
-        private void blerg<T>(T t)
-        {
-            
-        }
         private void Start()
         {
+            listOfAllPotentialTargets = GameManager.Instance.listOfAllPotentialTargets;
             currentCombatPhase = CombatSpherePhases.waitingToStart;
 
-            currentArmaments = GameManager.Instance.playerArmaments;
+            Armament Cannon = new Armament("Cannon", 10);
+            Armament Archer = new Armament("Archer", 15);
+            listOfArmaments.Add(Cannon);
+            listOfArmaments.Add(Archer);
 
-            TargetDetector = new TargetDetector();
+            ArmamentUIManager = new ArmamentUIManager(
+                listOfAllPotentialTargets,
+                targetsInCombatSphere,
+                armamentCanvases,
+                armamentTexts,
+                armamentSelector,
+                listOfArmaments,
+                selectedItemInUIList,
+                noTargetsUI,
+                combatSphere,
+                sphereSpeedScaler);
+
+            TargetUIManager = new TargetUIManager(
+                targetsInCombatSphere,
+                targetCanvases,
+                targetTexts,
+                targetSelector,
+                selectedItemInUIList);
+
+            TargetHighlighter = new TargetHighlighter(
+                listOfAllPotentialTargets,
+                targetsInCombatSphere, 
+                selectedItemInUIList);
+
         }
-
-        class OnArmamentUIStartEventArgs : EventArgs 
-        {
-            public Armament _armament; 
-        };
         private void Update()
         {
-            if(menuSelectionMode == true && currentCombatPhase != CombatSpherePhases.waitingToStart)
+            Event.OnUpdate?.Invoke();
+
+            if (menuSelectionMode == false && currentCombatPhase != CombatSpherePhases.waitingToStart)
             {
-                currentListNumSelection = 0;
+                selectedItemInUIList = 0;
 
                 switch(currentCombatPhase)
                 {
                     case CombatSpherePhases.armamentUIStart:
                         GameManager.Instance.PlayerUnitController.SetCharacterMovement(false);
-                        
-                        currentListCount = currentArmaments.Count;
-                        OnArmamentUIStart?.Invoke(this, EventArgs.Empty);
+                        currentListCount = listOfArmaments.Count;
+                        Event.OnArmamentSelectionChange?.Invoke(selectedItemInUIList);
+                        menuSelectionMode = true;
                         break;
                     case CombatSpherePhases.targetUIStart:
-                        currentListCount = currentTargets.Count;
-                        OnTargetUIStart?.Invoke(this, EventArgs.Empty);
-                        GameManager.Instance.TargetDetector.getAllTargetsInRangeOfArmament();
+                        currentListCount = targetsInCombatSphere.Count;
+                        Event.OnTargetSelectionChange?.Invoke(selectedItemInUIList);
+                        menuSelectionMode = true;
                         break;
                     case CombatSpherePhases.partsUIStart:
 
-                        OnPartsUIStart?.Invoke(this, EventArgs.Empty);
-                        GameManager.Instance.CombatMenuController.AdvanceMenu(1);
                         break;
                     case CombatSpherePhases.endingCombatSelection:
-                        OnCombatSphereEnd?.Invoke(this, EventArgs.Empty);
                         currentCombatPhase = CombatSpherePhases.waitingToStart;
                         
                         GameManager.Instance.PlayerUnitController.SetCharacterMovement(true);
@@ -138,87 +119,76 @@ namespace FomeCharacters
             {
                 if (Input.GetKeyDown("w"))
                 {
-                    MoveSelector(-1);
+                    MoveSelector(1);
                 }
                 if (Input.GetKeyDown("s"))
                 {
                     MoveSelector(-1);
                 }
-                if (Input.GetKeyDown("e"))
+
+                if(targetsInCombatSphere.Count > 0)
                 {
-                    AdvanceCombatPhase(1);
-                }
-                if (Input.GetKeyDown("q"))
-                {
-                    AdvanceCombatPhase(-1);
+                    if (Input.GetKeyDown("e"))
+                    {
+                        AdvanceCombatPhase(1);
+                    }
+                    if (Input.GetKeyDown("q"))
+                    {
+                        AdvanceCombatPhase(-1);
+                    }
                 }
             }
-
         }
         public void CombatSphereEnablerToggle()
         {
-
             if (combatSphereOn == false)
             {
-                OnCombatSphereStart?.Invoke(this, EventArgs.Empty);
+                Event.OnCombatSphereOpen?.Invoke();
                 AdvanceCombatPhase(1);
                 combatSphereOn = true;
             }
             else 
             {
-                OnCombatSphereEnd?.Invoke(this, EventArgs.Empty);
-                currentCombatPhase = CombatSpherePhases.endingCombatSelection;
+                Event.OnCombatSphereClose?.Invoke();
+                currentCombatPhase = CombatSpherePhases.waitingToStart;
+                GameManager.Instance.PlayerUnitController.SetCharacterMovement(true);
                 combatSphereOn = false;
             }
         }
-
         public void MoveSelector(int _direction)
         {
             int _listCount = currentListCount - 1;
 
             if (_direction == 1)
             {
-                currentListNumSelection--;
+                selectedItemInUIList--;
             }
             else
             {
-                currentListNumSelection++;
+                selectedItemInUIList++;
             }
 
-            if (currentListNumSelection < 0)
+            if (selectedItemInUIList < 0)
             {
-                currentListNumSelection = 0;
+                selectedItemInUIList = _listCount;
             }
-            if (currentListNumSelection > _listCount)
+            if (selectedItemInUIList > _listCount)
             {
-                currentListNumSelection = _listCount;
+                selectedItemInUIList = 0;
             }
 
             switch (currentCombatPhase)
             {
                 case CombatSpherePhases.armamentUIStart:
-                    //OnArmamentSelectionChange?.Invoke(currentArmament, currentArmaments);
-                    Event.OnArmamentSelectionChange(currentArmament, currentArmaments);
+                    Event.OnArmamentSelectionChange?.Invoke(selectedItemInUIList);
                     break;
                 case CombatSpherePhases.targetUIStart:
-                    OnTargetSelectionChange?.Invoke(currentTarget, currentTargets);
+                    Event.OnTargetSelectionChange?.Invoke(selectedItemInUIList);
                     break;
                 case CombatSpherePhases.partsUIStart:
-                    OnPartSelectionChange?.Invoke(this, EventArgs.Empty);
                     break;
             }
-
         }
-
-        private T GetCurrentSelection <T> (List<T> _list)
-        {
-            return _list[currentListNumSelection];
-        }
-        private Armament GetSelectedArmament(int _selectedItemInList)
-        {
-            return GameManager.Instance.playerArmaments[_selectedItemInList];
-        }
-
         public void AdvanceCombatPhase(int _direction)
         {
             if(currentCombatPhase == CombatSpherePhases.endingCombatSelection)
@@ -233,6 +203,7 @@ namespace FomeCharacters
             { 
                 currentCombatPhase--; 
             }
+            menuSelectionMode = false;
         }
     }
 }

@@ -76,9 +76,9 @@ namespace FomeCharacters
             }
             characterRenderer = visBody.GetComponent<Renderer>();
 
-            if(!GameManager.Instance.listOfAllTargets.Contains(gameObject))
+            if(characterType != CharacterType.Player && !GameManager.Instance.listOfAllPotentialTargets.Contains(gameObject.GetComponent<UnitController>()))
             {
-                GameManager.Instance.listOfAllTargets.Add(gameObject);
+                GameManager.Instance.listOfAllPotentialTargets.Add(gameObject.GetComponent<UnitController>());
             }
         }
         private void Update()

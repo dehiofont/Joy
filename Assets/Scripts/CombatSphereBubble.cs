@@ -1,28 +1,71 @@
 using FomeCharacters;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatSphereBubble : MonoBehaviour
+public class CombatSphereBubble
 {
-    [SerializeField] UnitController characterController;
-    [SerializeField] TargetDetector CSEnemyDetector;
-    [SerializeField] float combatSphereMaxSize;
-    [SerializeField] float combatSphereMinSize;
-    [SerializeField] float combatSphereSpeedScaler = 1;
-    [SerializeField] int resizeDirection = 1;
-    [SerializeField] float combatSphereSingleVector;
-    [SerializeField] GameManager GameManager;
+    private float sphereMaxSize;
+    private float sphereMinSize = 1;
+    private float sphereSpeedScaler = 1;
+    private int resizeDirection = 1;
+    private float sphereSingleVector;
 
     private GameObject combatSphere;
-    public bool combatSphereOn = false;
+    private bool combatSphereOn = false;
+    private int selectedArmament;
 
-    private void Start()
+    private int doubleRadiusForDiameter = 2;
+    private bool subscribedToUpdate = false;
+
+    List<Armament> listOfArmaments;
+    public CombatSphereBubble(
+        List<Armament> _listOfArmaments,
+        int _selectorPositionInList,
+        float _sphereSpeedScaler,
+        GameObject _combatSphere)
     {
-        combatSphereSingleVector = combatSphereMinSize;
-        SetCombatSphereSize();
+        listOfArmaments = _listOfArmaments;
+        sphereSpeedScaler = _sphereSpeedScaler;
+        combatSphere = _combatSphere;
+        selectedArmament = _selectorPositionInList;
+
+        sphereMaxSize = GetRange(); 
+
+        sphereSingleVector = sphereMinSize;
+        SetCombatSphereSmall();
+
+        Event.OnArmamentSelectionChange += OpenSphere;
+        Event.OnCombatSphereClose += CloseSphere;
     }
-    private void Update()
+
+    private float GetRange()
     {
-            
+        return listOfArmaments[selectedArmament].GetRange();
+    }
+
+    private void OpenSphere(int _selected)
+    {
+        SetCombatSphereSmall();
+        selectedArmament = _selected;
+        sphereMaxSize = GetRange() * doubleRadiusForDiameter;
+        resizeDirection = 1;
+        if(subscribedToUpdate == false)
+        {
+            Event.OnUpdate += ResizeCombatSphere;
+        }
+        subscribedToUpdate = true;
+    }
+
+    private void CloseSphere()
+    {
+        resizeDirection = -1;
+        Event.OnUpdate += ResizeCombatSphere;
+    }
+
+    private void UnsubscribeToUpdate()
+    {
+        Event.OnUpdate -= ResizeCombatSphere;
+        subscribedToUpdate = false;
     }
 
     public void StartResizingCombatSphere(int _direction)
@@ -31,38 +74,41 @@ public class CombatSphereBubble : MonoBehaviour
     }
     private void MaintainCombatSphereBounds()
     {
-        if (combatSphereSingleVector > combatSphereMaxSize)
+        if (sphereSingleVector > sphereMaxSize)
         {
-            combatSphereSingleVector = combatSphereMaxSize;
+            sphereSingleVector = sphereMaxSize;
         }
         else
         {
-            combatSphereSingleVector = combatSphereMinSize;
+            sphereSingleVector = sphereMinSize;
         }
 
         SetCombatSphereSize();
     }
 
-    private void SetCombatSphereSmall()
-    {
-        combatSphereSingleVector = combatSphereMaxSize;
-    }
     private void SetCombatSphereLarge()
     {
-        combatSphereSingleVector = combatSphereMinSize;
+        sphereSingleVector = sphereMaxSize;
+        SetCombatSphereSize();
+    }
+    private void SetCombatSphereSmall()
+    {
+        sphereSingleVector = sphereMinSize;
+        SetCombatSphereSize();
     }
 
     private void SetCombatSphereSize()
     {
-        combatSphere.transform.localScale = new Vector3(combatSphereSingleVector, combatSphereSingleVector, combatSphereSingleVector);
+        combatSphere.transform.localScale = new Vector3(sphereSingleVector, sphereSingleVector, sphereSingleVector);
     }
     private void ResizeCombatSphere()
     {
-        combatSphereSingleVector += Time.deltaTime * (combatSphereSpeedScaler * resizeDirection);
+        sphereSingleVector += Time.deltaTime * (sphereSpeedScaler * resizeDirection);
 
-        if (combatSphereSingleVector < combatSphereMinSize || combatSphereSingleVector > combatSphereMaxSize)
+        if (sphereSingleVector < sphereMinSize || sphereSingleVector > sphereMaxSize)
         {
             MaintainCombatSphereBounds();
+            UnsubscribeToUpdate();
         }
         else
         {

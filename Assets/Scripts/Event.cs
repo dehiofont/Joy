@@ -8,12 +8,18 @@ public static class Event
     // COMBAT SPHERE EVENTS
 
     public static Action OnCombatSphereOpen;
-    public static Action 
-    public static Action<Armament, List<Armament>> OnArmamentSelectionChange;
+    public static Action OnNoTargetsInSphere;
+    public static Action OnCombatSphereClose;
 
+    public static Action<int> OnArmamentSelectionChange;
+    public static Action<int> OnTargetSelectionChange;
+    public static Action<int> OnPartSelectionChange;
 
+    public static Action OnUpdate;
 
+    // INPUT MANAGER
 
+    // public static Action 
 
 }
 

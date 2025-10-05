@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public List<GameObject> listOfAllTargets = new List<GameObject>();
+    public List<UnitController> listOfAllPotentialTargets = new List<UnitController>();
 
     private void Awake()
     {
@@ -23,8 +23,7 @@ public class GameManager : MonoBehaviour
 
     public UnitController PlayerUnitController;
     public CombatSphereController CombatSphereController;
-    public TargetDetector TargetDetector;
-    public CombatSphereSelectionController PlayerCombatSphereSelectionController;
+    public TargetHighlighter PlayerCombatSphereSelectionController;
     public CombatMenuController CombatMenuController;
 
     public GameObject Player;

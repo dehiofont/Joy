@@ -3,85 +3,49 @@ using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
 using Unity.VisualScripting;
 using UnityEngine;
+using FomeCharacters;
 
-namespace FomeCharacters
+public class TargetDetector
 {
-    public class TargetDetector
+    public event Action<Armament, List<Armament>> OnDetectionFinish;
+
+    private float armamentRange;
+
+    public List<UnitController> targetsInCombatSphere;
+    public List<UnitController> listOfAllPotentialTargets;
+
+    public TargetDetector(List<UnitController> _listOfAllPotentialTargets, List<UnitController> _targetsInCombatSphere)
     {
-        public event Action<Armament, List<Armament>> OnDetectionFinish;
+        listOfAllPotentialTargets = _listOfAllPotentialTargets;
+        targetsInCombatSphere = _targetsInCombatSphere;
+    }
 
-        private float armamentRange;
 
-        public List<GameObject> targetsinCombatSphere = new List<GameObject>(); 
-        public List<UnitController> unitControllersinCombatSphere = new List<UnitController>(); 
-        
-        public bool enemyListComplete = false;
-
-        private Armament selectedArmament;
-        private List<Armament> allArmaments;
-
-        CombatSphereController combatSphereController;
-
-        public TargetDetector() 
+    public void getAllTargetsInRangeOfArmament(float _armamentRange)
+    {
+        targetsInCombatSphere.Clear();
+        foreach (UnitController target in listOfAllPotentialTargets)
         {
-            //combatSphereController = _combatSphereController;
-            combatSphereController.OnArmamentSelectionChange += ArmamentSetup;
-        }
-
-        public void RemoveAllEntriesFromCombatSphereList()
-        {
-            GameManager.Instance.PlayerCombatSphereSelectionController.ResetSelectedObjectsMats();
-            targetsinCombatSphere.Clear();
-            GameManager.Instance.PlayerCombatSphereSelectionController.ResetSelection();
-        }
-        //private void OnTriggerEnter(Collider other)
-        //{
-        //    Debug.Log($"{other} ENTERED THE COMBAT SPHERE");
-        //    enemiesInCombatSphere.Add(other.gameObject);
-        //}
-
-        private void ArmamentSetup(Armament _armament, List<Armament> _armaments)
-        {
-            selectedArmament = _armament;
-            allArmaments = _armaments;
-            armamentRange = selectedArmament.GetRange();
-
-            getAllTargetsInRangeOfArmament();
-        }
-
-        public void getAllTargetsInRangeOfArmament()
-        {
-            targetsinCombatSphere.Clear();
-            foreach(GameObject target in GameManager.Instance.listOfAllTargets)
-            {
-                float distance = Vector3.Distance(target.transform.position, GameManager.Instance.PlayerUnitController.GetUnitPos());
-                Debug.Log($"{target} is {distance} from the player");
-                if (target.GetComponent<UnitController>().GetCharacterType() != UnitController.CharacterType.Player && distance <= armamentRange)
-                {
-                    targetsinCombatSphere.Add(target);
-                    unitControllersinCombatSphere.Add(target.GetComponent<UnitController>());
-                }
-            }
+            float distance = Vector3.Distance(target.GetUnitPos(), GameManager.Instance.PlayerUnitController.GetUnitPos());
+            
             Debug.Log("--------");
-            for (int i = 0; i < targetsinCombatSphere.Count; i++)
+            Debug.Log($"{target} is {distance} from the player and the current range is {_armamentRange}");
+            
+            if (distance <= _armamentRange)
             {
-                Debug.Log(targetsinCombatSphere[i]);
+                targetsInCombatSphere.Add(target.GetComponent<UnitController>());
             }
-            Debug.Log("--------");
+        }
+        Debug.Log("--------");
+        for (int i = 0; i < targetsInCombatSphere.Count; i++)
+        {
+            Debug.Log(targetsInCombatSphere[i]);
+        }
+        Debug.Log("--------");
 
-            enemyListComplete = true;
-            if(targetsinCombatSphere.Count == 0)
-            {
-            }
-            else
-            {
-                GameManager.Instance.PlayerCombatSphereSelectionController.SetEnemyMatToInCombatSphere(targetsinCombatSphere[0]);
-                GameManager.Instance.noTargetsFoundCanvas.enabled = false;
-            }
-
-            OnDetectionFinish?.Invoke(selectedArmament, allArmaments);
-
-            //GameManager.Instance.CombatSphereController.AdvanceCombatPhase();
+        if (targetsInCombatSphere.Count == 0)
+        {
+            Event.OnNoTargetsInSphere();
         }
     }
 }
