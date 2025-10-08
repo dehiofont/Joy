@@ -37,6 +37,13 @@ namespace FomeCharacters
         [SerializeField] List<TextMeshProUGUI> targetTexts = new List<TextMeshProUGUI>();
         [SerializeField] Image targetSelector;
 
+        //PARTS
+        private PartUIManager PartUIManager;
+        private List<UnitController> listOfPartsInTarget = new List<UnitController> ();
+        [SerializeField] List<Canvas> partsCanvases = new List<Canvas>();
+        [SerializeField] List<TextMeshProUGUI> partTexts = new List<TextMeshProUGUI>();
+        [SerializeField] Image partSelector;
+
         //HIGHLIGHTER
         TargetHighlighter TargetHighlighter;
 
@@ -77,6 +84,14 @@ namespace FomeCharacters
                 targetTexts,
                 targetSelector,
                 selectedItemInUIList);
+
+            //PartUIManager = new PartUIManager(
+            //    targetsInCombatSphere,
+            //    listOfPartsInTarget,
+            //    targetCanvases,
+            //    targetTexts,
+            //    targetSelector,
+            //    selectedItemInUIList);
 
             TargetHighlighter = new TargetHighlighter(
                 listOfAllPotentialTargets,

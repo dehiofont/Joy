@@ -19,8 +19,6 @@ public class TargetDetector
         listOfAllPotentialTargets = _listOfAllPotentialTargets;
         targetsInCombatSphere = _targetsInCombatSphere;
     }
-
-
     public void getAllTargetsInRangeOfArmament(float _armamentRange)
     {
         targetsInCombatSphere.Clear();
@@ -46,6 +44,7 @@ public class TargetDetector
         if (targetsInCombatSphere.Count == 0)
         {
             Event.OnNoTargetsInSphere();
+            //Event.OnUnitControllersFound();
         }
     }
 }

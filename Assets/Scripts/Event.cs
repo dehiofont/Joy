@@ -15,6 +15,8 @@ public static class Event
     public static Action<int> OnTargetSelectionChange;
     public static Action<int> OnPartSelectionChange;
 
+    public static Action OnUnitControllersFound;
+
     public static Action OnUpdate;
 
     // INPUT MANAGER

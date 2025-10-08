@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,23 +7,21 @@ namespace FomeCharacters
 {
     public class UnitController : MonoBehaviour
     {
-        //private void Start()
-        //{
-
-        //}
-
         [SerializeField] string unitName;
+        [SerializeField] UnitController parent;
 
         [SerializeField] float characterMoveSpeed = 0.5f;
 
-        [SerializeField] Material matCharacterSelected;
-        [SerializeField] Material matCharacterInCombatSphere;
-        [SerializeField] Material matCharacterBase;
-        
+        public Material matCharacterSelected;
+        public Material matCharacterInCombatSphere;
+        public Material matCharacterBase;
+
+        public RendererManager rendereManager;
         [SerializeField] GameObject visBody;
         public enum CharacterType
         {
             Player,
+            Part,
             Monster,
             Boss,
         }
@@ -38,7 +37,7 @@ namespace FomeCharacters
 
         private bool allowCharacterInput = true;
         private bool characterMovementActive = true;
-        private Renderer characterRenderer;
+        public Renderer characterRenderer;
 
 
         [SerializeField] float charMoveAcceleration;
@@ -57,28 +56,36 @@ namespace FomeCharacters
         private float charRotationThrust;
         public float charRotationSpeed;
 
+        [SerializeField] List<UnitController> parts = new List<UnitController>();
+
         private void Start()
         {
             if(unitName == null)
             {
-                if(characterType == CharacterType.Player)
+                switch(characterType)
                 {
-                    unitName = "Player";
-                }
-                else if(characterType == CharacterType.Monster)
-                {
-                    unitName = "Monster";
-                }
-                else
-                {
-                    unitName = "Boss";
+                    case CharacterType.Player:
+                        unitName = "Player";
+                        break;
+                    case CharacterType.Part:
+                        unitName = "Part";
+                        break;
+                    case CharacterType.Monster:
+                        unitName = "Monster";
+                        break;
+                    case CharacterType.Boss:
+                        unitName = "Boss";
+                        break;
                 }
             }
-            characterRenderer = visBody.GetComponent<Renderer>();
 
-            if(characterType != CharacterType.Player && !GameManager.Instance.listOfAllPotentialTargets.Contains(gameObject.GetComponent<UnitController>()))
+            if ((characterType == CharacterType.Monster || characterType == CharacterType.Boss) && !GameManager.Instance.listOfAllPotentialTargets.Contains(gameObject.GetComponent<UnitController>()))
             {
                 GameManager.Instance.listOfAllPotentialTargets.Add(gameObject.GetComponent<UnitController>());
+            }
+            else if(characterType == CharacterType.Part)
+            {
+                parent.parts.Add(gameObject.GetComponent<UnitController>());
             }
         }
         private void Update()

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using static FomeCharacters.UnitController;
+using static UnityEngine.GraphicsBuffer;
 
 namespace FomeCharacters
 {
@@ -27,21 +29,39 @@ namespace FomeCharacters
         private void HighlightSelected(int _selected)
         {
             HighlightAll(1);
-            listOfTargetsInCombatSphere[_selected].SetCharacterSelectedMat();
+            foreach (Renderer _renderer in listOfTargetsInCombatSphere[_selected].rendereManager.listOfRenderers)
+            {
+                _renderer.material = listOfTargetsInCombatSphere[_selected].matCharacterSelected;
+            }
         }
         private void HighlightAll(int _temp)
         {
             RemoveAllHighlights();
-            for (int i = 0; i < listOfTargetsInCombatSphere.Count; i++)
+            foreach (UnitController _target in listOfTargetsInCombatSphere)
             {
-                listOfTargetsInCombatSphere[i].SetCharacterInCombatSphereMat();
+                if (_target.GetCharacterType() != CharacterType.Player)
+                {
+                    foreach (Renderer _renderer in _target.rendereManager.listOfRenderers)
+                    {
+                        _renderer.material = _target.matCharacterInCombatSphere;
+                    }
+                }
             }
         }
         public void RemoveAllHighlights()
         {
-            foreach (UnitController _target in listOfAllPotentialTargets)
+            if(listOfAllPotentialTargets.Count != 0)
             {
-                _target.SetCharacterBaseMat();
+                foreach (UnitController _target in listOfAllPotentialTargets)
+                {
+                    if (_target.GetCharacterType() != CharacterType.Player)
+                    {
+                        foreach(Renderer _renderer in _target.rendereManager.listOfRenderers)
+                        {
+                            _renderer.material = _target.matCharacterBase;
+                        }
+                    }
+                }
             }
         }
     }
