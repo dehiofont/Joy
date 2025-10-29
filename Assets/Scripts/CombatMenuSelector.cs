@@ -9,9 +9,9 @@ public class CombatMenuSelector : MonoBehaviour
 
     private void Start()
     {
-        armamentSelector = GameManager.Instance.armamentSelector;
-        targetSelector = GameManager.Instance.targetSelector;
-        partSelector = GameManager.Instance.partSelector;
+        //armamentSelector = GameManager.Instance.armamentSelector;
+        //targetSelector = GameManager.Instance.targetSelector;
+        //partSelector = GameManager.Instance.partSelector;
     }
 
 

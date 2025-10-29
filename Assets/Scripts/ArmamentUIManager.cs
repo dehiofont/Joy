@@ -4,70 +4,48 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ArmamentUIManager
+public class ArmamentUIManager : MonoBehaviour
 {
+    private UnitController player;
+    
     private CombatUIMenu ArmamentMenu;
-    private TargetDetector TargetDetector;
-    private CombatSphereBubble CombatSphereBubble;
 
-    private float sphereSpeedScaler;
-    private GameObject combatSphere;
-    private List<UnitController> listOfAllPotentialTargets;
-    private int selectorPositionInList = 0;
-    private Image selector;
-    private List<Canvas> listOfArmamentCanvases;
-    private List<TextMeshProUGUI> listOfTexts;
-    private List<Armament> listOfArmaments;
-    private List<UnitController> listOfTargetsInCombatSphere;
+    [SerializeField] List<Canvas> armamentCanvases;
+    [SerializeField] List<TextMeshProUGUI> listOfTexts;
+    [SerializeField] Image selector;
+    [SerializeField] GameObject noTargetsObject;
     private Canvas noTargetsUI;
-    private Armament selectedArmament;
+
+    private List<Armament> armaments;
 
     private bool armamentMenuOn = false;
-
-    public ArmamentUIManager(
-        List<UnitController> _listOfAllPotentialTargets,
-        List<UnitController> _listOfTargetsInCombatSphere,
-        List<Canvas> listOfcanvases,
-        List<TextMeshProUGUI> listOfTexts,
-        Image selector,
-        List<Armament> _listOfArmaments,
-        int _selectorPositionInList,
-        Canvas _noTargetsUI,
-        GameObject _combatSphere,
-        float _sphereSpeedScaler)
+    private void Awake()
     {
-        listOfAllPotentialTargets = _listOfAllPotentialTargets;
-        listOfTargetsInCombatSphere = _listOfTargetsInCombatSphere;
-        listOfArmaments = _listOfArmaments;
-        noTargetsUI = _noTargetsUI;
-        selectorPositionInList = _selectorPositionInList;
-        combatSphere = _combatSphere;
-        sphereSpeedScaler = _sphereSpeedScaler;
-
-        ArmamentMenu = new CombatUIMenu(listOfcanvases, listOfTexts, selector);
+        Event.OnPlayerSpawn += GetPlayerRef;
+    }
+    private void Start()
+    {
+        ArmamentMenu = new CombatUIMenu(armamentCanvases, listOfTexts, selector);
         ArmamentMenu.TurnOnOffMenu(0);
-        
-        TargetDetector = new TargetDetector(listOfAllPotentialTargets, listOfTargetsInCombatSphere);
 
-        CombatSphereBubble = new CombatSphereBubble(listOfArmaments, selectorPositionInList, sphereSpeedScaler, combatSphere);
+        noTargetsUI = noTargetsObject.GetComponent<Canvas>();
 
-        TurnOffNoTargetsUI();
+        ToggleNoTargetsUI(false);
 
         Event.OnArmamentSelectionChange += MenuSetup;
         Event.OnCombatSphereClose += TurnOffMenu;
         Event.OnTargetSelectionChange += TurnOffMenu;
-        Event.OnNoTargetsInSphere += TurnOnNoTargetsUI;
+        Event.ToggleNoTargetsInSphere += ToggleNoTargetsUI;
     }
-
-    private void MenuSetup(int _selectorPositionInList)
+    private void GetPlayerRef(UnitController _player)
     {
-        TurnOffNoTargetsUI();
-
-        selectorPositionInList = _selectorPositionInList;
-        TargetDetector.getAllTargetsInRangeOfArmament(GetSelectedArmament().GetRange());
-        
-        ArmamentMenu.GenerateTextList(listOfArmaments);
-        ArmamentMenu.SetSelectorPosition(_selectorPositionInList);
+        player = _player;
+        armaments = player.playerArmaments;
+    }
+    private void MenuSetup(int _selectedArmament)
+    {
+        ArmamentMenu.GenerateTextList(armaments);
+        ArmamentMenu.SetSelectorPosition(_selectedArmament);
         
         if(armamentMenuOn == false)
         {
@@ -75,32 +53,30 @@ public class ArmamentUIManager
         }
         armamentMenuOn = true;
     }
-
-    private Armament GetSelectedArmament()
-    {
-        return listOfArmaments[selectorPositionInList];
-    }
     private void TurnOffMenu()
     {
         ArmamentMenu.TurnOnOffMenu(0);
-        TurnOffNoTargetsUI();
+        ToggleNoTargetsUI(false);
         armamentMenuOn = false;
     }
-
     private void TurnOffMenu(int _temp)
     {
         ArmamentMenu.TurnOnOffMenu(0);
-        TurnOffNoTargetsUI();
+        ToggleNoTargetsUI(false);
         armamentMenuOn = false;
     }
-
-    private void TurnOnNoTargetsUI()
+    private void ToggleNoTargetsUI(bool _toggleOn)
     {
-        noTargetsUI.enabled = true;
-    }
-    private void TurnOffNoTargetsUI()
-    {
-        noTargetsUI.enabled = false;
+        if(_toggleOn == true)
+        {
+            noTargetsUI.enabled = true;
+            //Debug.Log("notarget on");
+        }
+        else
+        {
+            noTargetsUI.enabled = false;
+            //Debug.Log("notarget off");
+        }
     }
 }
 

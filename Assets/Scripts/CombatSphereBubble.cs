@@ -2,35 +2,30 @@ using FomeCharacters;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatSphereBubble
+public class CombatSphereBubble : MonoBehaviour
 {
+    private UnitController player;
+
     private float sphereMaxSize;
     private float sphereMinSize = 1;
-    private float sphereSpeedScaler = 1;
     private int resizeDirection = 1;
     private float sphereSingleVector;
 
-    private GameObject combatSphere;
-    private bool combatSphereOn = false;
-    private int selectedArmament;
+    [SerializeField] GameObject combatSphere;
+    [SerializeField] float sphereSpeedScaler = 1;
 
     private int doubleRadiusForDiameter = 2;
     private bool subscribedToUpdate = false;
 
-    List<Armament> listOfArmaments;
-    public CombatSphereBubble(
-        List<Armament> _listOfArmaments,
-        int _selectorPositionInList,
-        float _sphereSpeedScaler,
-        GameObject _combatSphere)
+    List<Armament> armaments;
+    private Armament armament;
+    private void Awake()
     {
-        listOfArmaments = _listOfArmaments;
-        sphereSpeedScaler = _sphereSpeedScaler;
-        combatSphere = _combatSphere;
-        selectedArmament = _selectorPositionInList;
-
-        sphereMaxSize = GetRange(); 
-
+        //Debug.Log("CombatController awake");
+        Event.OnPlayerSpawn += GetPlayerRef;
+    }
+    private void Start()
+    {
         sphereSingleVector = sphereMinSize;
         SetCombatSphereSmall();
 
@@ -38,16 +33,21 @@ public class CombatSphereBubble
         Event.OnCombatSphereClose += CloseSphere;
     }
 
-    private float GetRange()
+    private void GetPlayerRef(UnitController _player)
     {
-        return listOfArmaments[selectedArmament].GetRange();
+        player = _player;
+        armaments = player.playerArmaments;
+    }
+
+    private float GetRange(int _selected)
+    {
+        return armaments[_selected].GetRange();
     }
 
     private void OpenSphere(int _selected)
     {
         SetCombatSphereSmall();
-        selectedArmament = _selected;
-        sphereMaxSize = GetRange() * doubleRadiusForDiameter;
+        sphereMaxSize = GetRange(_selected) * doubleRadiusForDiameter;
         resizeDirection = 1;
         if(subscribedToUpdate == false)
         {

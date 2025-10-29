@@ -3,47 +3,67 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.DedicatedServer;
 using UnityEngine.UI;
 
-public class PartUIManager
+public class PartUIManager : MonoBehaviour
 {
+    UnitController player;
     CombatUIMenu PartsMenu;
+
+    [SerializeField] List<Canvas> listOfCanvases;
+    [SerializeField] List<TextMeshProUGUI> listOfTexts;
+    [SerializeField] Image selector;
+
+    private int targetSelected = 0;
+    private UnitController target;
 
     private bool partsMenuOn = false;
     private int selectorPositionInList = 0;
     private UnitController selectedTarget;
-    private Image selector;
-    private List<Canvas> listOfCanvases;
-    private List<TextMeshProUGUI> listOfTexts;
     private List<UnitController> listOfTargetsInCombatSphere;
 
-    private List<UnitController> listOfPartsInTarget;
-    public PartUIManager(
-            List<UnitController> _listOfTargetsInCombatSphere,
-            List<UnitController> _listOfPartsInTarget,
-            List<Canvas> _listOfcanvases,
-            List<TextMeshProUGUI> _listOfTexts,
-            Image _selector,
-            int _selectorPositionInList)
-    {
-        listOfTargetsInCombatSphere = _listOfTargetsInCombatSphere;
-        listOfPartsInTarget = _listOfPartsInTarget;
-        selectorPositionInList = _selectorPositionInList;
+    private List<UnitController> parts = new List<UnitController>();
 
-        PartsMenu = new CombatUIMenu(_listOfcanvases, _listOfTexts, _selector);
+    private void Awake()
+    {
+        //Debug.Log("CombatController awake");
+        Event.OnPlayerSpawn += GetPlayerRef;
+    }
+    private void Start()
+    {
+        PartsMenu = new CombatUIMenu(listOfCanvases, listOfTexts, selector);
         PartsMenu.TurnOnOffMenu(0);
 
-        Event.OnArmamentSelectionChange += TurnOffMenu;
-        Event.OnTargetSelectionChange += MenuSetup;
-        Event.OnPartSelectionChange += TurnOffMenu;
+        Event.OnTargetSelectionChange += TargetSelected;
+        Event.OnTargetSelectionChange += TurnOffMenu;
+        Event.OnTargetDetectionFinish += PartsSetup;
+        Event.OnPartSelectionChange += MenuSetup;
         Event.OnCombatSphereClose += TurnOffMenu;
     }
-    private void MenuSetup(int _selectorPositionInList)
-    {
-        selectorPositionInList = _selectorPositionInList;
 
-        PartsMenu.GenerateTextList(listOfPartsInTarget);
-        PartsMenu.SetSelectorPosition(_selectorPositionInList);
+    private void GetPlayerRef(UnitController _player)
+    {
+        player = _player;
+    }
+    private void TargetSelected(int _selected)
+    {
+        targetSelected = _selected;
+    }
+
+    private void PartsSetup(List<UnitController> _targets)
+    {
+        if (_targets.Count > 0)
+        {
+            parts = _targets[targetSelected].parts;
+        }
+    }    
+    private void MenuSetup(int _selected)
+    {
+        selectorPositionInList = _selected;
+
+        PartsMenu.GenerateTextList(parts);
+        PartsMenu.SetSelectorPosition(_selected);
 
         if (partsMenuOn == false)
         {

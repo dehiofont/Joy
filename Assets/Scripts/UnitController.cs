@@ -2,6 +2,7 @@ using Assets.Scripts;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace FomeCharacters
 {
@@ -56,13 +57,34 @@ namespace FomeCharacters
         private float charRotationThrust;
         public float charRotationSpeed;
 
-        [SerializeField] List<UnitController> parts = new List<UnitController>();
+
+        public List<Armament> playerArmaments = new List<Armament>();
+        public List<UnitController> parts = new List<UnitController>();
+        [SerializeField] GameObject targetPoint;
+
+        private PartManager partManager;
+
+        private int movementToggle = 1;
+
+        private void Awake()
+        {
+            if (characterType == CharacterType.Part)
+            {
+                parent.GetComponent<PartManager>().AddPart(gameObject.GetComponent<UnitController>());
+            }         
+        }
 
         private void Start()
         {
-            if(unitName == null)
+            if (characterType == CharacterType.Player)
             {
-                switch(characterType)
+                Debug.Log("Player Starting");
+                playerArmaments = gameObject.GetComponent<ArmamentManager>().getArmaments();
+                Event.OnPlayerSpawn?.Invoke(gameObject.GetComponent<UnitController>());
+            }
+            if (unitName == null)
+            {
+                switch (characterType)
                 {
                     case CharacterType.Player:
                         unitName = "Player";
@@ -76,16 +98,26 @@ namespace FomeCharacters
                     case CharacterType.Boss:
                         unitName = "Boss";
                         break;
+                    default:
+                        unitName = "I don't Know";
+                        break;
                 }
             }
 
-            if ((characterType == CharacterType.Monster || characterType == CharacterType.Boss) && !GameManager.Instance.listOfAllPotentialTargets.Contains(gameObject.GetComponent<UnitController>()))
+            if ((characterType != CharacterType.Player &&
+                !GameManager.Instance.unitControllersInStage.Contains(gameObject.GetComponent<UnitController>())))
             {
-                GameManager.Instance.listOfAllPotentialTargets.Add(gameObject.GetComponent<UnitController>());
+                GameManager.Instance.unitControllersInStage.Add(gameObject.GetComponent<UnitController>());
             }
-            else if(characterType == CharacterType.Part)
+
+            if (characterType != CharacterType.Part && characterType != CharacterType.Player)
             {
-                parent.parts.Add(gameObject.GetComponent<UnitController>());
+                partManager = gameObject.GetComponent<PartManager>();
+                parts = partManager.GetParts();
+            }
+
+            if (characterType == CharacterType.Player)
+            {
             }
         }
         private void Update()
@@ -101,13 +133,26 @@ namespace FomeCharacters
 
                 if (Input.GetKeyDown("space"))
                 {
-                    GameManager.Instance.CombatSphereController.CombatSphereEnablerToggle();
+                    gameObject.GetComponent<CombatSphereController>().CombatSphereEnablerToggle();
+                    if(movementToggle == 1)
+                    {
+                        characterMovementActive = false;
+                    }
+                    else
+                    {
+                        characterMovementActive = true;
+                    }
+                    movementToggle *= -1;
                 }
             }
         }
+        public Vector3 GetTargetPoint()
+        {
+            return targetPoint.transform.position;
+        }
         public Vector3 GetUnitPos()
         {
-            return gameObject.transform.position;
+            return this.transform.position;
         }
         public string GetName()
         {
@@ -219,11 +264,11 @@ namespace FomeCharacters
             allowCharacterInput = _allowInput;
         }
 
-        public CharacterType GetCharacterType()
+        public CharacterType getCharacterType()
         {
             return characterType;
         }
-        public CharacterTeam GetCharacterTeam()
+        public CharacterTeam getCharacterTeam()
         {
             return characterTeam;
         }

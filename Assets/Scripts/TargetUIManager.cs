@@ -4,40 +4,37 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-public class TargetUIManager
+public class TargetUIManager : MonoBehaviour
 {
     CombatUIMenu TargetMenu;
 
     private bool targetMenuOn = false;
-    private int selectorPositionInList = 0;
-    private UnitController selectedTarget;
-    private Image selector;
-    private List<Canvas> listOfCanvases;
-    private List<TextMeshProUGUI> listOfTexts;
-    private List<UnitController> listOfTargetsInCombatSphere;
-    public TargetUIManager(
-            List<UnitController> _listOfTargetsInCombatSphere,
-            List<Canvas> _listOfcanvases,
-            List<TextMeshProUGUI> _listOfTexts,
-            Image _selector,
-            int _selectorPositionInList)
-    {
-        listOfTargetsInCombatSphere = _listOfTargetsInCombatSphere;
-        selectorPositionInList = _selectorPositionInList;
 
-        TargetMenu = new CombatUIMenu(_listOfcanvases, _listOfTexts, _selector);
+    [SerializeField] List<Canvas> listOfCanvases;
+    [SerializeField] List<TextMeshProUGUI> listOfTexts;
+    [SerializeField] Image selector;
+
+    private List<UnitController> targets;
+
+    private void Start()
+    {
+        TargetMenu = new CombatUIMenu(listOfCanvases, listOfTexts, selector);
         TargetMenu.TurnOnOffMenu(0);
 
+        Event.OnTargetDetectionFinish += UpdateTargetList;
         Event.OnArmamentSelectionChange += TurnOffMenu;
         Event.OnTargetSelectionChange += MenuSetup;
         Event.OnPartSelectionChange += TurnOffMenu;
         Event.OnCombatSphereClose += TurnOffMenu;
     }
+
+    private void UpdateTargetList(List<UnitController> _targets)
+    {
+        targets = _targets;
+    }
     private void MenuSetup(int _selectorPositionInList)
     {
-        selectorPositionInList = _selectorPositionInList;
-
-        TargetMenu.GenerateTextList(listOfTargetsInCombatSphere);
+        TargetMenu.GenerateTextList(targets);
         TargetMenu.SetSelectorPosition(_selectorPositionInList);
 
         if (targetMenuOn == false)
