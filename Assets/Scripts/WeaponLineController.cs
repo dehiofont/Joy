@@ -38,7 +38,7 @@ public class WeaponLineController : MonoBehaviour
         Event.OnProjectileFire += SetWeaponLineActive;
         Event.OnCombatSphereClose += KillLineRenderers;
     }
-    private void SetWeaponLineActive()
+    private void SetWeaponLineActive(UnitController _target)
     {
         weaponLines[selectedArmamentSlotNum].ToggleFieldActive(1);
     }

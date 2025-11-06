@@ -66,6 +66,8 @@ namespace FomeCharacters
 
         private int movementToggle = 1;
 
+        private int thrustToggle = -1;
+
         private void Awake()
         {
             if (characterType == CharacterType.Part)
@@ -128,7 +130,10 @@ namespace FomeCharacters
                 if(characterMovementActive == true)
                 {
                     AddCharMoveThrust();
-                    RotateChar();
+                    if(thrustToggle == 1)
+                    {
+                        RotateChar();
+                    }
                 }
 
                 if (Input.GetKeyDown("space"))
@@ -228,7 +233,12 @@ namespace FomeCharacters
         }
         private void AddCharMoveThrust()
         {
-            if (Input.GetKey("w"))
+            if (Input.GetKeyDown("w"))
+            {
+                thrustToggle *= -1;
+            }
+
+            if(thrustToggle == 1)
             {
                 charMoveThrust = charMoveAcceleration;
             }

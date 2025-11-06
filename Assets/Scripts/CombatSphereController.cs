@@ -85,7 +85,7 @@ namespace FomeCharacters
                         menuSelectionMode = true;
                         break;
                     case CombatSpherePhases.projectileFire:
-                        Event.OnProjectileFire?.Invoke();
+                        Event.OnProjectileFire?.Invoke(partsInTarget[selectedItemInUIList]);
                         ExitCombatSphere();
                         break;
                     //case CombatSpherePhases.endingCombatSelection:

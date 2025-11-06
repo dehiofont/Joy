@@ -1,20 +1,48 @@
+using FomeCharacters;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ArmamentManager : MonoBehaviour
 {
-    private List<Armament> armaments = new List <Armament>();
+    [SerializeField] private List<Armament> armaments = new List <Armament>();
+    [SerializeField] private List<float> armamentCoolDowns = new List <float>();
+
+    private Armament selectedArmament;
+
+    private ProjectileManager projectileManager;
+
+    [SerializeField] private List<GameObject> firingLocations;
+
+    private UnitController target;
 
     private void Start()
-    {
-        Armament Cannon = new Armament("Cannon", 10);
-        Armament Archer = new Armament("Archer", 15);
-        armaments.Add(Cannon);
-        armaments.Add(Archer);
+    {        
+        projectileManager = GetComponent<ProjectileManager>();
+
+        Armament Cannon = new Armament("Cannon", 20, 2, Projectile.ProjectileTypes.CanonBall);
+        Armament Archer = new Armament("Archer", 25, 1.5f, Projectile.ProjectileTypes.Arrow);
+        AddArmament(Cannon);
+        AddArmament(Archer);
+
+        Event.OnArmamentSelectionChange += SetSelectedArmament;
+        Event.OnProjectileFire += SetArmamentActive;
     }
-    public void addArmament(Armament _armamaent)
-    { 
+    private void SetArmamentActive(UnitController _target)
+    {
+        target = _target;
+        selectedArmament.ToggleActivation(1);
+    }
+
+    private void SetSelectedArmament(int _selected)
+    {
+        selectedArmament = armaments[_selected];
+    }
+
+    public void AddArmament(Armament _armamaent)
+    {         
         armaments.Add(_armamaent);
+        armamentCoolDowns.Add(0);
     }
     public void removeArmament(Armament _armamaent)
     {
@@ -25,12 +53,28 @@ public class ArmamentManager : MonoBehaviour
     {
         return armaments;
     }
+    void Update()
+    {
+        foreach (Armament _armament in armaments)
+        {
+            if (_armament != null && _armament.GetArmamentStatus() == true)
+            {
+                _armament.addToShotTimer(Time.deltaTime);
+                if (_armament.GetShotTimer() > _armament.GetFrequency())
+                {
+                    projectileManager.PrepareProjectile(
+                        firingLocations[armaments.IndexOf(_armament)].transform.position,
+                        target,
+                        _armament.projectileType);
 
-    //public Armament GetItemsInList(int num)
-    //{
-    //    return armaments[num];
-    //}
+                    _armament.resetShotTimer();
+                }
+            }
+        }
 
-
-
+        for(int i = 0; i < armaments.Count; i++)
+        {
+            armamentCoolDowns[i] = armaments[i].GetShotTimer();
+        }
+    }
 }

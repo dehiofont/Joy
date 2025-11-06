@@ -22,11 +22,14 @@ public static class Event
     public static Action<int> OnTargetSelectionChange;
     public static Action<int> OnPartSelectionChange;
     //public static Action<Armament, UnitController> OnProjectileFire;
-    public static Action OnProjectileFire;
+    public static Action<UnitController> OnProjectileFire;
 
     public static Action OnUpdate;
 
     // INPUT MANAGER
+
+    // PROJECTILES
+    public static Action<ProjectileRepository> OnProjectileRepositorySpawn;
 
     // DETECTOR
 
