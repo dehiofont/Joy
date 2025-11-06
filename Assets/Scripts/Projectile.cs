@@ -12,13 +12,14 @@ public class Projectile : MonoBehaviour
     [SerializeField] private bool projectileJustFired;
     [SerializeField] private UnitController target;
     [SerializeField] private GameObject model;
+    private Vector3 startPoint = new Vector3(0, 0, 0);
 
     private ProjectileRepository pRepository;
 
     public enum ProjectileTypes
     {
-        Arrow,
-        CanonBall
+        Arrow = 0,
+        CanonBall = 1,
     }
 
     [SerializeField] private ProjectileTypes projectileType;
@@ -31,22 +32,12 @@ public class Projectile : MonoBehaviour
     {
         if(projectileActive == true)
         {
-            if(projectileJustFired == true)
-            {
-                model.SetActive(true);
-                //pRepository.AddActiveProjectile(this);
-                gameObject.transform.LookAt(target.transform.position);
-                lifeTimer = 0;
-
-                projectileJustFired = false;
-            }
-
             lifeTimer += Time.deltaTime;
 
             transform.Translate(Vector3.forward * Time.deltaTime * moveSpeed);
 
             if(projectileLife < lifeTimer ||
-                Vector3.Distance(gameObject.transform.position, target.transform.position) < 0.5f)
+                (gameObject.transform.position - target.transform.position).sqrMagnitude < (0.5f * 0.5f))
             {
                 DectivateProjectile();
             }
@@ -61,14 +52,15 @@ public class Projectile : MonoBehaviour
     {
         return projectileType; 
     }
-    public void ActivateProjectile(UnitController _target)
+    public void ActivateProjectile(UnitController _target, Vector3 _startPoint)
     {
-        //gameObject.SetActive(true);
+        lifeTimer = 0;
+        gameObject.transform.position = _startPoint;
         target = _target;
+        gameObject.transform.LookAt(target.transform.position);
+        model.SetActive(true);
         projectileActive = true;
-        projectileJustFired = true;
         pRepository.RemoveDeactivatedProjectile(this);
-        //pRepository.AddActiveProjectile(this);
     }
     public void DectivateProjectile()
     {

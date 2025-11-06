@@ -15,6 +15,8 @@ public class ArmamentManager : MonoBehaviour
     [SerializeField] private List<GameObject> firingLocations;
 
     private UnitController target;
+    private UnitController parentTarget;
+    private List<UnitController> listOfTargets;
 
     private void Start()
     {        
@@ -27,10 +29,28 @@ public class ArmamentManager : MonoBehaviour
 
         Event.OnArmamentSelectionChange += SetSelectedArmament;
         Event.OnProjectileFire += SetArmamentActive;
+        Event.OnTargetSelectionChange += SetMainTarget;
+        Event.OnPartSelectionChange += SetTarget;
+        Event.OnTargetDetectionFinish += SetPoolOfTargets;
     }
+
+    private void SetMainTarget(int _seletcted)
+    {
+        parentTarget = listOfTargets[_seletcted];
+    }
+
+    private void SetPoolOfTargets(List<UnitController> _targetLists)
+    {
+        listOfTargets = _targetLists;
+    }
+
+    private void SetTarget(int _selected)
+    {
+        target = parentTarget.parts[_selected];
+    }
+
     private void SetArmamentActive(UnitController _target)
     {
-        target = _target;
         selectedArmament.ToggleActivation(1);
     }
 

@@ -1,8 +1,6 @@
 ﻿using FomeCharacters;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 public class ProjectileManager : MonoBehaviour
 {
     private UnitController unitController;
@@ -13,6 +11,8 @@ public class ProjectileManager : MonoBehaviour
 
     private ProjectileRepository pRepository;
     private List<Projectile> deactiveProjectiles = new List<Projectile>();
+
+    private bool foundProjectileMatch = false;
 
     private void Awake()
     {
@@ -28,22 +28,22 @@ public class ProjectileManager : MonoBehaviour
         pRepository = _pRepository;
         deactiveProjectiles = pRepository.deactiveProjectiles;
     }
+
+    //FIND INACTIVE OR CREATE A NEW PROJECTILE
     public void PrepareProjectile(
         Vector3 _origin,
         UnitController _target, 
         Projectile.ProjectileTypes _projectileType)
     {
-        bool foundProjectileMatch = false;
+        foundProjectileMatch = false;
+
         if (deactiveProjectiles.Count > 0)
         {
-            Debug.Log("inside the reuse part");
             foreach (Projectile _projectile in deactiveProjectiles)
             {
                 if (_projectile.GetProjectileType() == _projectileType && foundProjectileMatch == false)
                 {
-                    FireProjectile(_projectile, _target);
-                    deactiveProjectiles.Remove(_projectile);
-                    //pRepository.AddActiveProjectile(_projectile);
+                    FireProjectile(_projectile, _target, _origin);
                     foundProjectileMatch = true;
                     break;
                 }               
@@ -53,29 +53,22 @@ public class ProjectileManager : MonoBehaviour
 
         if(foundProjectileMatch == false)
         {
-            Debug.Log("inside the create new part");
-            CreateNewProjectile(_origin, _target, _projectileType);
-        }
-    }
-    private void CreateNewProjectile(
-        Vector3 _origin,
-        UnitController _target,
-        Projectile.ProjectileTypes _projectileType)
-    {
-        foreach (GameObject _gameObject in pRepository.projectilePrefabs)
-        {
-            if (_gameObject.GetComponent<Projectile>().GetProjectileType() == _projectileType)
+            foreach (GameObject _gameObject in pRepository.projectilePrefabs)
             {
-                GameObject newProjectile = Instantiate(_gameObject, _origin, Quaternion.identity);
-                newProjectile.GetComponent<Projectile>().SetPRepositoryRef(pRepository);
-                //pRepository.AddActiveProjectile(newProjectile.GetComponent<Projectile>());
-                FireProjectile(newProjectile.GetComponent<Projectile>(), _target);
+                if (_gameObject.GetComponent<Projectile>().GetProjectileType() == _projectileType)
+                {
+                    GameObject newProjectile = Instantiate(_gameObject, _origin, Quaternion.identity);
+                    newProjectile.GetComponent<Projectile>().SetPRepositoryRef(pRepository);
+                    //pRepository.AddActiveProjectile(newProjectile.GetComponent<Projectile>());
+                    FireProjectile(newProjectile.GetComponent<Projectile>(), _target, _origin);
+                }
             }
         }
     }
 
-    private void FireProjectile(Projectile projectile, UnitController _target)
+    //ACTIVATE AND START PROJECTILE
+    private void FireProjectile(Projectile projectile, UnitController _target, Vector3 _startPoint)
     {
-        projectile.ActivateProjectile(_target);
+        projectile.ActivateProjectile(_target, _startPoint);
     }
 }
